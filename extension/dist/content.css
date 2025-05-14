@@ -1,0 +1,33 @@
+/* ConsentLens Styles */
+.consentlens-highlight {
+  border: 2px solid #007bff !important;
+  position: relative;
+}
+
+.consentlens-badge {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background: #007bff;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 12px;
+  font-size: 12px;
+  z-index: 999999;
+}
+
+.consentlens-tooltip {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 999999;
+  max-width: 200px;
+  display: none;
+}
+
+.consentlens-highlight:hover .consentlens-tooltip {
+  display: block;
+}

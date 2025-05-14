@@ -1,16 +1,18 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import { Eye, Zap, Users, BarChart3, AlertTriangle, ShieldAlert, FileText, DatabaseZap, SearchCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
-const FeatureCard = ({ icon, title, description, delay = 0 }) => (
+const FeatureCard = ({ icon, title, description, delay = 0, onClick }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5, delay }}
+    onClick={onClick}
+    className={`cursor-pointer ${onClick ? 'hover:scale-105' : ''} transition-transform duration-300`}
   >
     <Card className="h-full bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm shadow-xl hover:shadow-2xl transition-shadow duration-300 border-brand-primary/20 dark:border-brand-secondary/30">
       <CardHeader className="items-center text-center">
@@ -28,6 +30,7 @@ const FeatureCard = ({ icon, title, description, delay = 0 }) => (
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const sectionVariants = {
     hidden: { opacity: 0, y: 50 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
@@ -39,11 +42,15 @@ const HomePage = () => {
       featuresSection.scrollIntoView({ behavior: 'smooth' });
     }
   };
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <div className="overflow-x-hidden">
       {/* Hero Section */}
       <motion.section
+        id="topsection"
         initial="hidden"
         animate="visible"
         variants={sectionVariants}
@@ -73,8 +80,32 @@ const HomePage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.8 }}
+            className="flex flex-col sm:flex-row gap-4 justify-center items-center"
           >
-            <Button onClick={scrollToFeatures} size="lg" className="bg-white text-brand-primary hover:bg-slate-100 dark:bg-brand-secondary dark:text-white dark:hover:bg-brand-secondary/90 text-lg px-10 py-7 shadow-2xl transform hover:scale-105 transition-transform duration-300 animate-subtle-pulse">
+            <Button 
+              onClick={() => {
+                scrollToTop();
+                setTimeout(() => navigate('/login'), 300);
+              }}
+              size="lg" 
+              className="bg-white text-brand-primary hover:bg-slate-100 dark:bg-brand-secondary dark:text-white dark:hover:bg-brand-secondary/90 text-lg px-10 py-7 shadow-2xl transform hover:scale-105 transition-transform duration-300"
+            >
+              Sign In
+            </Button>
+            {/* <Button 
+              onClick={() => navigate('/signup')} 
+              size="lg" 
+              variant="outline"
+              className="bg-transparent border-2 border-white text-white hover:bg-white/10 text-lg px-10 py-7 shadow-2xl transform hover:scale-105 transition-transform duration-300"
+            >
+              Sign Up
+            </Button> */}
+            <Button 
+              onClick={scrollToFeatures} 
+              size="lg" 
+              variant="ghost"
+              className="bg-transparent border-2 border-white text-white hover:bg-white/10 text-lg px-10 py-7 shadow-2xl transform hover:scale-105 transition-transform duration-300"
+            >
               Explore Features
             </Button>
           </motion.div>
@@ -126,7 +157,7 @@ const HomePage = () => {
               className="relative"
             >
               <div className="absolute -inset-2 bg-gradient-to-r from-brand-secondary to-brand-accent rounded-lg blur opacity-20"></div>
-              <img  class="rounded-lg shadow-2xl relative z-10 w-full h-auto object-cover" alt="Confused user looking at complex legal document" src="https://images.unsplash.com/photo-1586856635275-af01918579ba" />
+              <img  className="rounded-lg shadow-2xl relative z-10 w-full h-auto object-cover" alt="Confused user looking at complex legal document" src="https://images.unsplash.com/photo-1586856635275-af01918579ba" />
             </motion.div>
           </div>
         </div>
@@ -150,7 +181,7 @@ const HomePage = () => {
               className="relative order-last md:order-first"
             >
               <div className="absolute -inset-2 bg-gradient-to-r from-brand-primary to-brand-accent rounded-lg blur opacity-20 "></div>
-              <img  class="rounded-lg shadow-2xl relative z-10 w-full h-auto object-cover" alt="ConsentLens dashboard showing clear privacy information" src="https://images.unsplash.com/photo-1690264460165-0ff5e1063d86" />
+              <img  className="rounded-lg shadow-2xl relative z-10 w-full h-auto object-cover" alt="ConsentLens dashboard showing clear privacy information" src="https://images.unsplash.com/photo-1690264460165-0ff5e1063d86" />
             </motion.div>
             <motion.div 
               initial={{ opacity: 0, x: 50 }}
@@ -197,19 +228,67 @@ const HomePage = () => {
             <motion.div variants={sectionVariants}>
               <h3 className="text-2xl font-semibold font-heading mb-8 text-center text-brand-primary dark:text-brand-light">For Users</h3>
               <div className="grid sm:grid-cols-2 gap-6">
-                <FeatureCard icon={<FileText />} title="AI Summaries" description="Understand complex cookie banners and privacy policies with easy-to-read AI-generated summaries." delay={0.1} />
-                <FeatureCard icon={<DatabaseZap />} title="Unified Dashboard" description="Manage all your consents from a single, intuitive dashboard." delay={0.2} />
-                <FeatureCard icon={<Zap />} title="Auto-Revoke Engine" description="Effortlessly withdraw consent from services you no longer use or trust." delay={0.3} />
-                <FeatureCard icon={<BarChart3 />} title="Privacy Score" description="Get an instant privacy rating for websites and apps before you engage." delay={0.4} />
+                <FeatureCard 
+                  icon={<FileText />} 
+                  title="AI Summaries" 
+                  description="Understand complex cookie banners and privacy policies with easy-to-read AI-generated summaries." 
+                  delay={0.1}
+                  onClick={() => user ? navigate('/ai-summaries') : navigate('/login')}
+                />
+                <FeatureCard 
+                  icon={<DatabaseZap />} 
+                  title="Unified Dashboard" 
+                  description="Manage all your consents from a single, intuitive dashboard." 
+                  delay={0.2}
+                  onClick={() => user ? navigate('/consents') : navigate('/login')}
+                />
+                <FeatureCard 
+                  icon={<Zap />} 
+                  title="Auto-Revoke Engine" 
+                  description="Effortlessly withdraw consent from services you no longer use or trust." 
+                  delay={0.3}
+                  onClick={() => user ? navigate('/auto-revoke') : navigate('/login')}
+                />
+                <FeatureCard 
+                  icon={<BarChart3 />} 
+                  title="Privacy Score" 
+                  description="Get an instant privacy rating for websites and apps before you engage." 
+                  delay={0.4}
+                  onClick={() => user ? navigate('/privacy-insights') : navigate('/login')}
+                />
               </div>
             </motion.div>
             <motion.div variants={sectionVariants}>
               <h3 className="text-2xl font-semibold font-heading mb-8 text-center text-brand-primary dark:text-brand-light">For Organizations</h3>
               <div className="grid sm:grid-cols-2 gap-6">
-                <FeatureCard icon={<DatabaseZap />} title="Consent Repository" description="Maintain a secure and auditable record of user consents for compliance." delay={0.5} />
-                <FeatureCard icon={<FileText />} title="Audit Export Tools" description="Easily export consent data for internal reviews or regulatory audits." delay={0.6} />
-                <FeatureCard icon={<SearchCheck />} title="Policy Analyzer" description="AI-powered analysis to flag potential compliance issues in your privacy policies." delay={0.7} />
-                <FeatureCard icon={<ShieldAlert />} title="Consent Drift Detection" description="Receive alerts when consent practices deviate from established policies or user expectations." delay={0.8} />
+                <FeatureCard 
+                  icon={<DatabaseZap />} 
+                  title="Consent Repository" 
+                  description="Maintain a secure and auditable record of user consents for compliance." 
+                  delay={0.5}
+                  onClick={() => user ? navigate('/consent-repository') : navigate('/login')}
+                />
+                <FeatureCard 
+                  icon={<FileText />} 
+                  title="Audit Export Tools" 
+                  description="Easily export consent data for internal reviews or regulatory audits." 
+                  delay={0.6}
+                  onClick={() => user ? navigate('/audit-export') : navigate('/login')}
+                />
+                <FeatureCard 
+                  icon={<SearchCheck />} 
+                  title="Policy Analyzer" 
+                  description="AI-powered analysis to flag potential compliance issues in your privacy policies." 
+                  delay={0.7}
+                  onClick={() => user ? navigate('/policy-analyzer') : navigate('/login')}
+                />
+                <FeatureCard 
+                  icon={<ShieldAlert />} 
+                  title="Consent Drift Detection" 
+                  description="Receive alerts when consent practices deviate from established policies or user expectations." 
+                  delay={0.8}
+                  onClick={() => user ? navigate('/consent-drift-detection') : navigate('/login')}
+                />
               </div>
             </motion.div>
           </div>
@@ -235,7 +314,7 @@ const HomePage = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <Button onClick={() => navigate('/signup')} size="lg" className="bg-white text-brand-primary hover:bg-slate-100 dark:bg-brand-secondary dark:text-white dark:hover:bg-brand-secondary/90 text-lg px-12 py-8 shadow-2xl">
+            <Button onClick={() => {scrollToTop(); setTimeout(() => navigate('/signup'), 300);}} size="lg" className="bg-white text-brand-primary hover:bg-slate-100 dark:bg-brand-secondary dark:text-white dark:hover:bg-brand-secondary/90 text-lg px-12 py-8 shadow-2xl">
               Sign Up for Early Access
             </Button>
           </motion.div>

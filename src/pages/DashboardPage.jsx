@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { motion } from 'framer-motion';
-import { FileText, DatabaseZap, Zap, BarChart3, ShieldCheck, Users, Settings, HelpCircle } from 'lucide-react';
+import { FileText, DatabaseZap, Zap, BarChart3, ShieldCheck, Users, Settings, HelpCircle, ShieldAlert } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const DashboardCard = ({ icon, title, description, delay = 0, children }) => (
   <motion.div
@@ -28,19 +28,60 @@ const DashboardCard = ({ icon, title, description, delay = 0, children }) => (
 
 const DashboardPage = () => {
   const userEmail = localStorage.getItem('userEmail') || 'User';
+  const navigate = useNavigate();
 
   const userFeatures = [
-    { icon: <FileText />, title: "AI Summaries", description: "View simplified summaries of privacy policies you've encountered." },
-    { icon: <DatabaseZap />, title: "My Consents", description: "Manage all your tracked consents in one place." },
-    { icon: <Zap />, title: "Auto-Revoke", description: "Set up rules to automatically revoke consents." },
-    { icon: <BarChart3 />, title: "Privacy Insights", description: "Check your overall privacy score and trends." },
+    { 
+      icon: <FileText />, 
+      title: "AI Summaries", 
+      description: "View simplified summaries of privacy policies you've encountered.",
+      path: "/ai-summaries"
+    },
+    { 
+      icon: <DatabaseZap />, 
+      title: "My Consents", 
+      description: "Manage all your tracked consents in one place.",
+      path: "/consents"
+    },
+    { 
+      icon: <Zap />, 
+      title: "Auto-Revoke", 
+      description: "Set up rules to automatically revoke consents.",
+      path: "/auto-revoke"
+    },
+    { 
+      icon: <BarChart3 />, 
+      title: "Privacy Insights", 
+      description: "Check your overall privacy score and trends.",
+      path: "/privacy-insights"
+    },
   ];
 
   const orgFeatures = [
-    { icon: <DatabaseZap />, title: "Consent Repository", description: "Access and manage your organization's consent records." },
-    { icon: <FileText />, title: "Audit Trails", description: "Export audit logs for compliance reporting." },
-    { icon: <ShieldCheck />, title: "Policy Analyzer", description: "Analyze your policies for compliance gaps." },
-    { icon: <Users />, title: "User Management", description: "Manage team access and roles (Admin)." },
+    { 
+      icon: <DatabaseZap />, 
+      title: "Consent Repository", 
+      description: "Access and manage your organization's consent records.",
+      path: "/consent-repository"
+    },
+    { 
+      icon: <FileText />, 
+      title: "Audit Export", 
+      description: "Export audit logs for compliance reporting.",
+      path: "/audit-export"
+    },
+    { 
+      icon: <ShieldCheck />, 
+      title: "Policy Analyzer", 
+      description: "Analyze your policies for compliance gaps.",
+      path: "/policy-analyzer"
+    },
+    { 
+      icon: <ShieldAlert />, 
+      title: "Consent Drift", 
+      description: "Monitor and detect changes in consent practices.",
+      path: "/consent-drift-detection"
+    },
   ];
 
   return (
@@ -67,9 +108,14 @@ const DashboardPage = () => {
         <h2 className="text-2xl font-semibold font-heading mb-6 text-brand-primary dark:text-brand-light">For You</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {userFeatures.map((feature, index) => (
-            <DashboardCard key={index} icon={feature.icon} title={feature.title} description={feature.description} delay={index * 0.1}>
-              {/* Placeholder for future actions */}
-            </DashboardCard>
+            <div key={index} onClick={() => navigate(feature.path)} className="cursor-pointer">
+              <DashboardCard 
+                icon={feature.icon} 
+                title={feature.title} 
+                description={feature.description} 
+                delay={index * 0.1}
+              />
+            </div>
           ))}
         </div>
       </motion.section>
@@ -79,12 +125,17 @@ const DashboardPage = () => {
         animate="visible"
         variants={{ visible: { transition: { staggerChildren: 0.1 }}}}
       >
-        <h2 className="text-2xl font-semibold font-heading mb-6 text-brand-primary dark:text-brand-light">For Organizations (Coming Soon)</h2>
+        <h2 className="text-2xl font-semibold font-heading mb-6 text-brand-primary dark:text-brand-light">For Organizations</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {orgFeatures.map((feature, index) => (
-            <DashboardCard key={index} icon={feature.icon} title={feature.title} description={feature.description} delay={(userFeatures.length + index) * 0.1}>
-               {/* Placeholder for future actions */}
-            </DashboardCard>
+            <div key={index} onClick={() => navigate(feature.path)} className="cursor-pointer">
+              <DashboardCard 
+                icon={feature.icon} 
+                title={feature.title} 
+                description={feature.description} 
+                delay={(userFeatures.length + index) * 0.1}
+              />
+            </div>
           ))}
         </div>
       </motion.section>
@@ -103,7 +154,6 @@ const DashboardPage = () => {
             </DashboardCard>
          </div>
       </motion.section>
-
     </div>
   );
 };

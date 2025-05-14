@@ -9,52 +9,30 @@ import { motion } from 'framer-motion';
 import { ShieldCheck, Mail, Lock } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
-const SignupPage = () => {
+const LoginPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (password !== confirmPassword) {
-      toast({
-        title: "Error",
-        description: "Passwords do not match.",
-        variant: "destructive",
-      });
-      return;
-    }
-    if (password.length < 6) {
-      toast({
-        title: "Error",
-        description: "Password must be at least 6 characters long.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
     try {
       setLoading(true);
-      const { data, error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
       });
 
       if (error) throw error;
 
       toast({
-        title: "Check your email",
-        description: "We've sent you a verification link to complete your registration.",
+        title: "Welcome back!",
+        description: "You've been successfully logged in.",
       });
       
-      // Optionally redirect to a verification pending page
-      navigate('/auth/verify-email');
+      navigate('/dashboard');
     } catch (error) {
       toast({
         title: "Error",
@@ -78,9 +56,11 @@ const SignupPage = () => {
             <div className="mx-auto mb-4">
               <ShieldCheck className="h-16 w-16 text-brand-primary dark:text-brand-secondary" />
             </div>
-            <CardTitle className="text-3xl font-bold font-heading text-brand-primary dark:text-brand-light">Create Your Account</CardTitle>
+            <CardTitle className="text-3xl font-bold font-heading text-brand-primary dark:text-brand-light">
+              Welcome Back
+            </CardTitle>
             <CardDescription className="text-brand-dark dark:text-slate-300">
-              Join ConsentLens and take control of your digital privacy.
+              Sign in to your ConsentLens account
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -89,11 +69,11 @@ const SignupPage = () => {
                 <Label htmlFor="email" className="text-brand-dark dark:text-brand-light flex items-center">
                   <Mail className="mr-2 h-4 w-4" /> Email
                 </Label>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  placeholder="you@example.com" 
-                  required 
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="bg-white/80 dark:bg-slate-700/80 border-brand-primary/50 dark:border-brand-secondary/60 focus:ring-brand-accent"
@@ -104,51 +84,47 @@ const SignupPage = () => {
                 <Label htmlFor="password" className="text-brand-dark dark:text-brand-light flex items-center">
                   <Lock className="mr-2 h-4 w-4" /> Password
                 </Label>
-                <Input 
-                  id="password" 
-                  type="password" 
-                  placeholder="••••••••" 
-                  required 
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="bg-white/80 dark:bg-slate-700/80 border-brand-primary/50 dark:border-brand-secondary/60 focus:ring-brand-accent"
                   disabled={loading}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirm-password" className="text-brand-dark dark:text-brand-light flex items-center">
-                  <Lock className="mr-2 h-4 w-4" /> Confirm Password
-                </Label>
-                <Input 
-                  id="confirm-password" 
-                  type="password"
-                  placeholder="••••••••"
-                  required
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="bg-white/80 dark:bg-slate-700/80 border-brand-primary/50 dark:border-brand-secondary/60 focus:ring-brand-accent"
-                  disabled={loading}
-                />
-              </div>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full bg-brand-primary hover:bg-brand-primary/90 text-white"
                 disabled={loading}
               >
-                {loading ? 'Creating account...' : 'Sign Up'}
+                {loading ? 'Signing in...' : 'Sign In'}
               </Button>
             </form>
           </CardContent>
           <CardFooter className="text-center">
-            <Button
-              type="button"
-              variant="link"
-              onClick={() => navigate('/login')}
-              className="w-full text-brand-primary dark:text-brand-secondary"
-              disabled={loading}
-            >
-              Already have an account? Sign in
-            </Button>
+            <div className="w-full space-y-2">
+              <Button
+                type="button"
+                variant="link"
+                onClick={() => navigate('/signup')}
+                className="w-full text-brand-primary dark:text-brand-secondary"
+                disabled={loading}
+              >
+                Don't have an account? Sign up
+              </Button>
+              <Button
+                type="button"
+                variant="link"
+                onClick={() => navigate('/auth/reset-password')}
+                className="w-full text-brand-primary/80 dark:text-brand-secondary/80 text-sm"
+                disabled={loading}
+              >
+                Forgot your password?
+              </Button>
+            </div>
           </CardFooter>
         </Card>
       </motion.div>
@@ -156,4 +132,4 @@ const SignupPage = () => {
   );
 };
 
-export default SignupPage;
+export default LoginPage;

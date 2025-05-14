@@ -1,28 +1,38 @@
-
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShieldCheck, LogOut } from 'lucide-react';
+import { ShieldCheck, LogOut, DatabaseZap, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Navbar = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const isAuthenticated = !!localStorage.getItem('userToken');
+  const { user, signOut } = useAuth();
 
   const handleGetStarted = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     navigate('/signup');
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('userToken');
-    toast({
-      title: "Logged Out",
-      description: "You have been successfully logged out.",
-      variant: "default",
-    });
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      const { error } = await signOut();
+      if (error) throw error;
+      toast({
+        title: "Logged Out",
+        description: "You have been successfully logged out.",
+        variant: "default",
+      });
+      navigate('/');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
   
   const scrollToFeatures = () => {
@@ -39,7 +49,6 @@ const Navbar = () => {
       }, 100);
     }
   };
-
 
   return (
     <motion.nav 
@@ -60,10 +69,16 @@ const Navbar = () => {
             <Button variant="ghost" onClick={scrollToFeatures} className="text-brand-dark dark:text-brand-light hover:bg-brand-primary/10 dark:hover:bg-brand-secondary/20">
               Features
             </Button>
-            {isAuthenticated ? (
+            {user ? (
               <>
                 <Button variant="ghost" onClick={() => navigate('/dashboard')} className="text-brand-dark dark:text-brand-light hover:bg-brand-primary/10 dark:hover:bg-brand-secondary/20">
                   Dashboard
+                </Button>
+                <Button variant="ghost" onClick={() => navigate('/consents')} className="text-brand-dark dark:text-brand-light hover:bg-brand-primary/10 dark:hover:bg-brand-secondary/20">
+                  <DatabaseZap className="mr-2 h-4 w-4" /> My Consents
+                </Button>
+                <Button variant="ghost" onClick={() => navigate('/auto-revoke')} className="text-brand-dark dark:text-brand-light hover:bg-brand-primary/10 dark:hover:bg-brand-secondary/20">
+                  <Zap className="mr-2 h-4 w-4" /> Auto-Revoke
                 </Button>
                 <Button onClick={handleLogout} className="bg-gradient-to-r from-red-500 to-pink-500 text-white hover:opacity-90 transition-opacity duration-300 shadow-lg">
                   <LogOut className="mr-2 h-4 w-4" /> Logout
