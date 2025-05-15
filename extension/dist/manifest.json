@@ -13,6 +13,7 @@
   "host_permissions": [
     "https://*.supabase.co/*",
     "https://byeezbrgqtvytbijlsob.supabase.co/*",
+    "https://ashish-truce-hackathon-2025.vercel.app/*",
     "http://localhost:5173/*",
     "http://localhost/*"
   ],
