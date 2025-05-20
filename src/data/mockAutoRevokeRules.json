@@ -1,0 +1,109 @@
+{
+  "rules": [
+    {
+      "id": "1",
+      "consentId": "c1",
+      "website": "example.com",
+      "type": "time_based",
+      "value": "1 month",
+      "created_at": "2025-04-19T10:00:00Z",
+      "expiry_date": "2025-06-19T10:00:00Z",
+      "status": "active",
+      "description": "Automatically revoke after 1 month"
+    },
+    {
+      "id": "2",
+      "consentId": "c2",
+      "website": "analytics.example.com",
+      "type": "inactivity",
+      "value": "3 months",
+      "created_at": "2025-03-15T08:30:00Z",
+      "expiry_date": "2025-06-15T08:30:00Z",
+      "status": "active",
+      "description": "Revoke after 3 months of inactivity"
+    },
+    {
+      "id": "3",
+      "consentId": "c3",
+      "website": "shop.example.com",
+      "type": "scheduled",
+      "value": "2025-07-01T00:00:00Z",
+      "created_at": "2025-05-01T14:20:00Z",
+      "expiry_date": "2025-07-01T00:00:00Z",
+      "status": "pending",
+      "description": "Scheduled revocation on July 1st, 2025"
+    },
+    {
+      "id": "4",
+      "consentId": "c4",
+      "website": "ads.example.com",
+      "type": "time_based",
+      "value": "6 months",
+      "created_at": "2025-01-10T16:45:00Z",
+      "expiry_date": "2025-07-10T16:45:00Z",
+      "status": "active",
+      "description": "Long-term consent with 6-month auto-revoke"
+    }
+  ],
+  "ruleTypes": [
+    {
+      "id": "time_based",
+      "name": "Time-based",
+      "description": "Revoke after a specific time period",
+      "options": ["1 week", "1 month", "3 months", "6 months", "1 year"]
+    },
+    {
+      "id": "inactivity",
+      "name": "Inactivity-based",
+      "description": "Revoke after a period of inactivity",
+      "options": ["1 month", "3 months", "6 months"]
+    },
+    {
+      "id": "scheduled",
+      "name": "Scheduled",
+      "description": "Revoke on a specific date",
+      "options": []
+    }
+  ],
+  "templates": [
+    {
+      "id": "gdpr_compliance",
+      "name": "GDPR Compliance",
+      "description": "Standard GDPR-compliant consent duration",
+      "type": "time_based",
+      "value": "1 year",
+      "tags": ["compliance", "gdpr"]
+    },
+    {
+      "id": "marketing_consent",
+      "name": "Marketing Consent",
+      "description": "Short-term marketing consent with auto-revoke",
+      "type": "time_based",
+      "value": "3 months",
+      "tags": ["marketing", "promotional"]
+    },
+    {
+      "id": "analytics_consent",
+      "name": "Analytics Tracking",
+      "description": "Analytics consent with inactivity-based revocation",
+      "type": "inactivity",
+      "value": "3 months",
+      "tags": ["analytics", "tracking"]
+    },
+    {
+      "id": "seasonal_promotion",
+      "name": "Seasonal Campaign",
+      "description": "Time-limited promotional consent",
+      "type": "scheduled",
+      "tags": ["marketing", "promotional", "seasonal"]
+    },
+    {
+      "id": "minimal_consent",
+      "name": "Minimal Data Collection",
+      "description": "Basic data collection with short duration",
+      "type": "time_based",
+      "value": "1 month",
+      "tags": ["privacy", "minimal"]
+    }
+  ]
+}

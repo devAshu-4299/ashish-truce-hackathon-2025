@@ -1,0 +1,120 @@
+{
+  "consents": [
+    {
+      "id": "1",
+      "website_url": "https://www.amazon.com",
+      "consent_type": "cookie",
+      "status": true,
+      "risk_factors": [
+        { "risk": "Extensive data collection", "severity": "high" },
+        { "risk": "Third-party data sharing", "severity": "medium" },
+        { "risk": "Long-term data retention", "severity": "low" }
+      ],
+      "auto_revoke_rule": {
+        "enabled": true,
+        "duration": "30d",
+        "conditions": ["after_duration"]
+      },
+      "expiry_date": "2025-06-19T10:00:00Z",
+      "created_at": "2025-05-19T10:00:00Z",
+      "updated_at": "2025-05-19T10:00:00Z",
+      "consent_details": {
+        "necessary": true,
+        "functional": true,
+        "analytics": true,
+        "advertising": false
+      }
+    },
+    {
+      "id": "2",
+      "website_url": "https://www.facebook.com",
+      "consent_type": "privacy_policy",
+      "status": true,
+      "risk_factors": [
+        { "risk": "Broad content rights", "severity": "high" },
+        { "risk": "Limited user control", "severity": "high" },
+        { "risk": "Complex data sharing", "severity": "medium" },
+        { "risk": "Mandatory arbitration", "severity": "medium" }
+      ],
+      "auto_revoke_rule": {
+        "enabled": false
+      },
+      "created_at": "2025-05-18T15:30:00Z",
+      "updated_at": "2025-05-18T15:30:00Z",
+      "consent_details": {
+        "data_collection": true,
+        "third_party_sharing": false,
+        "marketing": false
+      }
+    },
+    {
+      "id": "3",
+      "website_url": "https://www.chase.com",
+      "consent_type": "cookie",
+      "status": true,
+      "risk_factors": [
+        { "risk": "Required financial data collection", "severity": "medium" },
+        { "risk": "Regulatory data sharing", "severity": "low" }
+      ],
+      "auto_revoke_rule": {
+        "enabled": true,
+        "duration": "90d",
+        "conditions": ["after_duration", "policy_change"]
+      },
+      "expiry_date": "2025-08-19T09:15:00Z",
+      "created_at": "2025-05-17T09:15:00Z",
+      "updated_at": "2025-05-17T09:15:00Z",
+      "consent_details": {
+        "necessary": true,
+        "functional": true,
+        "analytics": true,
+        "advertising": false
+      }
+    },
+    {
+      "id": "4",
+      "website_url": "https://www.spotify.com",
+      "consent_type": "cookie",
+      "status": true,
+      "risk_factors": [
+        { "risk": "Detailed usage tracking", "severity": "medium" },
+        { "risk": "Third-party integrations", "severity": "medium" },
+        { "risk": "Location data collection", "severity": "high" }
+      ],
+      "auto_revoke_rule": {
+        "enabled": true,
+        "duration": "60d",
+        "conditions": ["after_duration"]
+      },
+      "expiry_date": "2025-07-19T14:20:00Z",
+      "created_at": "2025-05-16T14:20:00Z",
+      "updated_at": "2025-05-16T14:20:00Z",
+      "consent_details": {
+        "necessary": true,
+        "functional": true,
+        "analytics": true,
+        "advertising": true
+      }
+    },
+    {
+      "id": "5",
+      "website_url": "https://www.protonmail.com",
+      "consent_type": "privacy_policy",
+      "status": true,
+      "risk_factors": [
+        { "risk": "Limited recovery options", "severity": "medium" },
+        { "risk": "Swiss law compliance", "severity": "low" }
+      ],
+      "auto_revoke_rule": {
+        "enabled": false
+      },
+      "created_at": "2025-05-15T11:45:00Z",
+      "updated_at": "2025-05-15T11:45:00Z",
+      "consent_details": {
+        "data_collection": true,
+        "third_party_sharing": false,
+        "marketing": false
+      }
+    }
+  ]
+}

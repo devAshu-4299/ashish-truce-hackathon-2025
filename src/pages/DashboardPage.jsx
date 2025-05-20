@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import { FileText, DatabaseZap, Zap, BarChart3, ShieldCheck, Users, Settings, HelpCircle, ShieldAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { privacyService } from '@/services/PrivacyService';
+import { autoRevokeService } from '@/services/AutoRevokeService';
 
-const DashboardCard = ({ icon, title, description, delay = 0, children }) => (
+const DashboardCard = ({ icon, title, description, delay = 0, stats, status, children }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
@@ -17,9 +19,28 @@ const DashboardCard = ({ icon, title, description, delay = 0, children }) => (
           {React.cloneElement(icon, { className: "h-8 w-8 text-white" })}
         </div>
         <CardTitle className="text-xl font-heading text-brand-primary dark:text-brand-light">{title}</CardTitle>
+        {status && (
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+            status.type === 'warning' ? 'bg-yellow-100 text-yellow-800' :
+            status.type === 'success' ? 'bg-green-100 text-green-800' :
+            'bg-blue-100 text-blue-800'
+          }`}>
+            {status.text}
+          </span>
+        )}
       </CardHeader>
       <CardContent className="text-center">
         <CardDescription className="text-brand-dark dark:text-slate-300 mb-4">{description}</CardDescription>
+        {stats && (
+          <div className="mt-2 flex justify-center space-x-4">
+            {stats.map((stat, index) => (
+              <div key={index} className="text-center">
+                <div className="text-2xl font-bold text-brand-primary dark:text-brand-light">{stat.value}</div>
+                <div className="text-xs text-brand-dark/60 dark:text-brand-light/60">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        )}
         {children}
       </CardContent>
     </Card>
@@ -29,32 +50,81 @@ const DashboardCard = ({ icon, title, description, delay = 0, children }) => (
 const DashboardPage = () => {
   const userEmail = localStorage.getItem('userEmail') || 'User';
   const navigate = useNavigate();
+  const [dashboardData, setDashboardData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        const [privacyData, autoRevokeRules] = await Promise.all([
+          privacyService.getPrivacyInsights(),
+          autoRevokeService.getRules()
+        ]);
+
+        setDashboardData({
+          privacyScore: privacyData.overallScore,
+          activeConsents: privacyData.activeConsents,
+          highRiskConsents: privacyData.highRiskConsents,
+          autoRevokeRules: autoRevokeRules.length
+        });
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDashboardData();
+  }, []);
 
   const userFeatures = [
     { 
       icon: <FileText />, 
       title: "AI Summaries", 
       description: "View simplified summaries of privacy policies you've encountered.",
-      path: "/ai-summaries"
+      path: "/ai-summaries",
+      stats: [
+        { value: "15", label: "Summaries" },
+        { value: "85%", label: "Avg. Score" }
+      ]
     },
     { 
       icon: <DatabaseZap />, 
       title: "My Consents", 
       description: "Manage all your tracked consents in one place.",
-      path: "/consents"
+      path: "/consents",
+      stats: loading ? null : [
+        { value: dashboardData?.activeConsents || "0", label: "Active" },
+        { value: dashboardData?.highRiskConsents || "0", label: "High Risk" }
+      ],
+      status: loading ? null : (dashboardData?.highRiskConsents > 0 ? 
+        { type: 'warning', text: `${dashboardData.highRiskConsents} high risk` } : 
+        { type: 'success', text: 'All safe' })
     },
     { 
       icon: <Zap />, 
       title: "Auto-Revoke", 
       description: "Set up rules to automatically revoke consents.",
-      path: "/auto-revoke"
+      path: "/auto-revoke",
+      stats: loading ? null : [
+        { value: dashboardData?.autoRevokeRules || "0", label: "Rules" },
+        { value: dashboardData?.activeConsents || "0", label: "Monitored" }
+      ],
+      status: loading ? null : { 
+        type: 'success', 
+        text: `${dashboardData?.autoRevokeRules || 0} rules active` 
+      }
     },
     { 
       icon: <BarChart3 />, 
       title: "Privacy Insights", 
       description: "Check your overall privacy score and trends.",
-      path: "/privacy-insights"
-    },
+      path: "/privacy-insights",
+      stats: loading ? null : [
+        { value: dashboardData?.privacyScore || "0", label: "Score" },
+        { value: dashboardData?.highRiskConsents === 0 ? "Good" : "At Risk", label: "Status" }
+      ]
+    }
   ];
 
   const orgFeatures = [
@@ -105,14 +175,19 @@ const DashboardPage = () => {
         animate="visible"
         variants={{ visible: { transition: { staggerChildren: 0.1 }}}}
       >
-        <h2 className="text-2xl font-semibold font-heading mb-6 text-brand-primary dark:text-brand-light">For You</h2>
+        <h2 className="text-2xl font-semibold font-heading mb-6 text-brand-primary dark:text-brand-light flex items-center gap-2">
+          For You
+          <span className="text-sm font-normal bg-brand-accent/10 text-brand-accent px-2 py-1 rounded">Personal Dashboard</span>
+        </h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {userFeatures.map((feature, index) => (
             <div key={index} onClick={() => navigate(feature.path)} className="cursor-pointer">
               <DashboardCard 
                 icon={feature.icon} 
                 title={feature.title} 
-                description={feature.description} 
+                description={feature.description}
+                stats={feature.stats}
+                status={feature.status}
                 delay={index * 0.1}
               />
             </div>

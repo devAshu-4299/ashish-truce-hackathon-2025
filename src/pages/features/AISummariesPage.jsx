@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
-import { aiSummaryService } from '@/services/AISummaryService';
+import AISummaryService from '../../services/AISummaryService';
 
 const AISummariesPage = () => {
   const [summaries, setSummaries] = useState([]);
@@ -16,7 +16,7 @@ const AISummariesPage = () => {
   const loadSummaries = async () => {
     try {
       setLoading(true);
-      const data = await aiSummaryService.getUserSummaries();
+      const data = await AISummaryService.getUserSummaries();
       setSummaries(data || []);
     } catch (error) {
       toast({
@@ -35,7 +35,7 @@ const AISummariesPage = () => {
 
   const handleDelete = async (id) => {
     try {
-      await aiSummaryService.deleteSummary(id);
+      await AISummaryService.deleteSummary(id);
       toast({
         title: "Success",
         description: "Summary deleted successfully",
@@ -127,6 +127,24 @@ const AISummariesPage = () => {
                     <p className="text-brand-dark dark:text-brand-light whitespace-pre-wrap">
                       {summary.summary}
                     </p>
+                    {summary.key_points && (
+                      <div className="mt-4">
+                        <h3 className="font-medium mb-2">Key Points</h3>
+                        <ul className="list-disc list-inside text-brand-dark/80 dark:text-brand-light/80">
+                          {summary.key_points.map((point, index) => (
+                            <li key={index}>{point}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {summary.privacy_score && (
+                      <div className="mt-4 flex items-center gap-2">
+                        <span className="text-sm font-medium">Privacy Score:</span>
+                        <span className="text-sm text-brand-primary dark:text-brand-secondary">
+                          {summary.privacy_score}/100
+                        </span>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </motion.div>

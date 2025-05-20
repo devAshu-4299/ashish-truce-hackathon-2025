@@ -1,0 +1,113 @@
+{
+  "insights": {
+    "overallScore": 78,
+    "activeConsents": 8,
+    "highRiskConsents": 3,
+    "autoRevokeRules": 5,
+    "risks": [
+      { 
+        "severity": "high", 
+        "description": "Data sharing with third parties", 
+        "count": 3,
+        "details": "Multiple websites are sharing your data with advertising networks"
+      },
+      { 
+        "severity": "medium", 
+        "description": "Cookie tracking enabled", 
+        "count": 5,
+        "details": "Several websites have persistent tracking cookies"
+      },
+      { 
+        "severity": "medium", 
+        "description": "Location data collection", 
+        "count": 2,
+        "details": "Two services are collecting precise location data"
+      },
+      { 
+        "severity": "low", 
+        "description": "Analytics cookies", 
+        "count": 8,
+        "details": "Standard analytics tracking is enabled on multiple sites"
+      }
+    ],
+    "recommendations": [
+      {
+        "title": "Review High-Risk Consents",
+        "description": "You have 3 high-risk consents that share data with third parties",
+        "priority": "high",
+        "actionType": "review",
+        "affectedSites": ["shopping.example.com", "ads.example.com", "analytics.example.com"]
+      },
+      {
+        "title": "Enable Auto-Revoke",
+        "description": "Set up auto-revoke rules for consents with tracking enabled",
+        "priority": "medium",
+        "actionType": "configure",
+        "affectedSites": ["tracking.example.com", "marketing.example.com"]
+      },
+      {
+        "title": "Update Privacy Settings",
+        "description": "Some websites are collecting more data than necessary",
+        "priority": "medium",
+        "actionType": "update",
+        "affectedSites": ["social.example.com", "news.example.com"]
+      },
+      {
+        "title": "Regular Privacy Audit",
+        "description": "Schedule monthly reviews of your active consents",
+        "priority": "low",
+        "actionType": "schedule",
+        "affectedSites": ["all"]
+      }
+    ],
+    "details": {
+      "dataSharing": {
+        "total": 12,
+        "thirdParty": 3,
+        "analytics": 8,
+        "marketing": 4,
+        "breakdown": {
+          "advertising": 3,
+          "analytics": 8,
+          "social": 2,
+          "essential": 5
+        }
+      },
+      "consentTypes": {
+        "essential": 5,
+        "functional": 3,
+        "analytics": 8,
+        "marketing": 4,
+        "preferences": {
+          "allowed": 12,
+          "blocked": 4,
+          "pending": 2
+        }
+      },
+      "autoRevokeStatus": {
+        "enabled": 5,
+        "pending": 3,
+        "total": 8,
+        "rules": {
+          "timeBasedRules": 3,
+          "inactivityRules": 2,
+          "scheduledRules": 3
+        }
+      },
+      "trends": {
+        "lastMonth": {
+          "consentsAdded": 5,
+          "consentsRevoked": 3,
+          "highRiskChange": -1
+        },
+        "riskTrend": [
+          { "date": "2025-04-19", "score": 65 },
+          { "date": "2025-04-26", "score": 70 },
+          { "date": "2025-05-03", "score": 72 },
+          { "date": "2025-05-10", "score": 75 },
+          { "date": "2025-05-17", "score": 78 }
+        ]
+      }
+    }
+  }
+}
