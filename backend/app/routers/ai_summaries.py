@@ -19,10 +19,17 @@ async def analyze_policy(
     Analyze a privacy policy and generate an AI summary
     """
     try:
-        # Extract policy text from URL if provided
         policy_text = request.policy_text
         if request.website_url and not policy_text:
             policy_text = await ai_service.extract_policy_text(request.website_url)
+
+        # Ensure we have something to summarise
+        if not policy_text:
+            raise HTTPException(status_code=400, detail="Unable to obtain policy text for analysis")
+
+        # Additional validation for empty or whitespace-only policy text
+        if not policy_text.strip():
+            raise HTTPException(status_code=400, detail="Policy text is empty or contains only whitespace")
 
         # Create initial summary record
         summary_data = {
@@ -158,7 +165,7 @@ async def copy_and_analyze_policy(
             saved_summary["id"],
             request.policy_text,
             current_user["id"],
-            request.custom_prompt or (custom_prompt.prompt if custom_prompt else None)
+            request.custom_prompt or (custom_prompt["prompt"] if custom_prompt else None)
         )
 
         return saved_summary
