@@ -8,14 +8,17 @@
     "activeTab",
     "scripting",
     "tabs",
-    "sessions"
+    "sessions",
+    "webNavigation",
+    "notifications",
+    "background"
   ],
   "host_permissions": [
     "https://*.supabase.co/*",
     "https://byeezbrgqtvytbijlsob.supabase.co/*",
-    "https://ashish-truce-hackathon-2025.vercel.app/*",
     "http://localhost:5173/*",
-    "http://localhost/*"
+    "http://localhost/*",
+    "<all_urls>"
   ],
   "background": {
     "service_worker": "background.js",

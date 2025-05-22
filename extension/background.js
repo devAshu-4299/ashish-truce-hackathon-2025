@@ -1,112 +1,254 @@
-import { createClient } from '@supabase/supabase-js';
+// Background script for ConsentLens extension
+import config from './config.js';
 
-// Initialize Supabase
-const supabase = createClient(
-  'https://byeezbrgqtvytbijlsob.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ5ZWV6YnJncXR2eXRiaWpsc29iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcxMTYzNjcsImV4cCI6MjA2MjY5MjM2N30.I6CgRPyxMYXRaAcgLzCaPiI7KrlY-qOt1IsWJia_ep8'
-);
+let authToken = null;
 
-// Debug logging
-const DEBUG = true;
-function debugLog(message, data = null) {
-  if (DEBUG) {
-    console.log(`[ConsentLens Background] ${message}`, data || '');
+// Listen for messages from content script or popup
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.type === 'ANALYZE_POLICY') {
+    analyzePolicyText(request.data, sender.tab?.id)
+      .then(response => sendResponse(response))
+      .catch(error => sendResponse({ error: error.message }));
+    return true;
   }
-}
-
-// Handle messages from content script
-chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-  debugLog('Received message:', message);
-
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      debugLog('User not logged in');
-      sendResponse({ error: 'User not logged in' });
-      return;
-    }
-
-    switch (message.type) {
-      case 'COOKIE_BANNER_DETECTED':
-        await handleCookieBanner(message.data, user.id);
-        break;
-      case 'PRIVACY_POLICY_DETECTED':
-        await handlePrivacyPolicy(message.data, user.id);
-        break;
-    }
-
+  
+  if (request.type === 'SET_AUTH_TOKEN') {
+    authToken = request.token;
     sendResponse({ success: true });
-  } catch (error) {
-    debugLog('Error handling message:', error);
-    sendResponse({ error: error.message });
+    return true;
+  }
+
+  if (request.type === 'FETCH_POLICY') {
+    fetchPolicy(request.data.url)
+      .then(html => sendResponse({ html }))
+      .catch(error => sendResponse({ error: error.message }));
+    return true;
   }
 });
 
-// Handle cookie banner detection
-async function handleCookieBanner(data, userId) {
-  debugLog('Handling cookie banner:', data);
-
+// Fetch policy HTML from URL by creating a new tab
+async function fetchPolicy(url) {
   try {
-    const { error } = await supabase
-      .from('user_consents')
-      .insert({
-        user_id: userId,
-        website_url: data.url,
-        consent_type: 'cookie',
-        status: data.status,
-        auto_revoke_rule: {
-          hasAcceptAll: data.hasAcceptAll,
-          hasRejectAll: data.hasRejectAll,
-          hasCustomize: data.hasCustomize
-        },
-        created_at: data.timestamp
-      });
+    // Create a new tab to load the policy
+    const tab = await chrome.tabs.create({ 
+      url: url, 
+      active: false // Keep it in background
+    });
 
-    if (error) throw error;
-    debugLog('Cookie banner saved to Supabase');
+    // Wait for the page to load and extract content
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        chrome.tabs.remove(tab.id);
+        reject(new Error('Timeout waiting for policy page to load'));
+      }, 10000); // 10 second timeout
+
+      // Listen for the content script to send us the policy text
+      const listener = (message, sender) => {
+        if (sender.tab?.id === tab.id && message.type === 'POLICY_CONTENT') {
+          cleanup();
+          resolve(message.data.html);
+        }
+      };
+
+      // Cleanup function
+      const cleanup = () => {
+        clearTimeout(timeout);
+        chrome.runtime.onMessage.removeListener(listener);
+        chrome.tabs.remove(tab.id);
+      };
+
+      // Add listener
+      chrome.runtime.onMessage.addListener(listener);
+
+      // Inject content script to extract policy
+      chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        function: () => {
+          // Wait for page to load
+          if (document.readyState === 'complete') {
+            extractAndSend();
+          } else {
+            window.addEventListener('load', extractAndSend);
+          }
+
+          function extractAndSend() {
+            const html = document.documentElement.outerHTML;
+            chrome.runtime.sendMessage({
+              type: 'POLICY_CONTENT',
+              data: { html }
+            });
+          }
+        }
+      }).catch(error => {
+        cleanup();
+        reject(error);
+      });
+    });
   } catch (error) {
-    debugLog('Error saving cookie banner:', error);
+    console.error('Error fetching policy:', error);
+    throw error;
   }
 }
 
-// Handle privacy policy detection
-async function handlePrivacyPolicy(data, userId) {
-  debugLog('Handling privacy policy:', data);
-
+// Function to analyze policy text
+async function analyzePolicyText(data, tabId) {
   try {
-    // First save the policy text
-    const { data: policy, error: policyError } = await supabase
-      .from('policies')
-      .insert({
-        title: 'Privacy Policy',
-        content: data.text,
-        created_at: data.timestamp
+    if (!authToken) {
+      throw new Error('Not authenticated');
+    }
+
+    // First, create the analysis request
+    const response = await fetch(`${config.API_BASE_URL}/api/ai-summaries/analyze`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        website_url: data.url,
+        policy_text: data.policyText
       })
-      .select()
-      .single();
+    });
 
-    if (policyError) throw policyError;
+    if (!response.ok) {
+      throw new Error('Failed to initiate analysis');
+    }
 
-    // Then save the consent
-    const { error: consentError } = await supabase
-      .from('user_consents')
-      .insert({
-        user_id: userId,
-        website_url: data.url,
-        consent_type: 'policy',
-        status: data.status,
-        policy_id: policy.id,
-        created_at: data.timestamp
-      });
+    const initialResult = await response.json();
 
-    if (consentError) throw consentError;
-    debugLog('Privacy policy saved to Supabase');
+    // Show initial quick summary
+    if (tabId) {
+      try {
+        chrome.tabs.sendMessage(tabId, {
+          type: 'QUICK_SUMMARY_READY',
+          data: initialResult.summary.quick_summary
+        });
+      } catch (error) {
+        console.debug('Could not send quick summary:', error);
+      }
+    }
+
+    // Poll for full analysis
+    const pollInterval = 2000; // 2 seconds
+    const maxAttempts = 30; // 1 minute total
+    let attempts = 0;
+
+    while (attempts < maxAttempts) {
+      const pollResponse = await fetch(
+        `${config.API_BASE_URL}/api/ai-summaries/${initialResult.id}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${authToken}`
+          }
+        }
+      );
+
+      if (!pollResponse.ok) {
+        throw new Error('Failed to check analysis status');
+      }
+
+      const result = await pollResponse.json();
+
+      if (result.summary.status === 'completed') {
+        // Send full analysis to content script
+        if (tabId) {
+          try {
+            chrome.tabs.sendMessage(tabId, {
+              type: 'FULL_ANALYSIS_READY',
+              data: result.summary
+            });
+          } catch (error) {
+            console.debug('Could not send full analysis:', error);
+          }
+        }
+        return result;
+      }
+
+      attempts++;
+      await new Promise(resolve => setTimeout(resolve, pollInterval));
+    }
+
+    throw new Error('Analysis timed out');
   } catch (error) {
-    debugLog('Error saving privacy policy:', error);
+    console.error('Error in analyzePolicyText:', error);
+    throw error;
   }
 }
 
-// Listen for installation
-chrome.runtime.onInstalled.addListener(() => {
-  debugLog('Extension installed');
+// Function to compare policy versions
+async function comparePolicyVersions(oldText, newText, url) {
+  try {
+    if (!authToken) {
+      throw new Error('Not authenticated');
+    }
+
+    const response = await fetch(`${config.API_BASE_URL}/api/ai-summaries/compare`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        old_policy_text: oldText,
+        new_policy_text: newText,
+        website_url: url
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to compare policies');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error in comparePolicyVersions:', error);
+    throw error;
+  }
+}
+
+// Function to check if URL has changed policy
+chrome.webNavigation.onCompleted.addListener(async (details) => {
+  try {
+    // Only process main frame navigation
+    if (details.frameId !== 0) return;
+
+    // Get stored policy for this URL
+    const stored = await chrome.storage.local.get(details.url);
+    if (!stored[details.url]) return;
+
+    // Check if tab is accessible
+    const tab = await chrome.tabs.get(details.tabId).catch(() => null);
+    if (!tab) return;
+
+    // Get current policy text
+    try {
+      const response = await chrome.tabs.sendMessage(details.tabId, {
+        type: 'EXTRACT_POLICY_TEXT'
+      });
+
+      if (response && response.policyText !== stored[details.url].policyText) {
+        // Compare versions
+        const changes = await comparePolicyVersions(
+          stored[details.url].policyText,
+          response.policyText,
+          details.url
+        );
+
+        // Notify user if significant changes
+        if (changes.impact_level === 'High' || changes.user_action_required) {
+          chrome.notifications.create({
+            type: 'basic',
+            iconUrl: 'icons/icon.svg',
+            title: 'Privacy Policy Change Detected',
+            message: `The privacy policy at ${new URL(details.url).hostname} has changed. ${changes.summary}`
+          });
+        }
+      }
+    } catch (error) {
+      console.debug('Could not extract policy text:', error);
+      // This is expected for non-policy pages, so we silently ignore
+    }
+  } catch (error) {
+    console.error('Error checking policy changes:', error);
+  }
 });
